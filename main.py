@@ -15,16 +15,29 @@ vectorizer = joblib.load("vectorizer.pkl")
 # 🔥 1. PREDIKSI TEKS BIASA
 # ============================
 @app.post("/predict")
-def predict_text(data: dict):
-    text = data.get("text", "")
-    vec = vectorizer.transform([text])
-    pred = model.predict(vec)[0]
-    prob = float(model.predict_proba(vec).max())
-    return {
-        "text": text,
-        "sentiment": pred,
-        "confidence": prob
-    }
+def predict_multi_text(data: dict):
+    input_text = data.get("text", "")
+
+    # Pisahkan teks berdasarkan koma
+    texts = [t.strip() for t in input_text.split(",") if t.strip()]
+
+    if not texts:
+        return {"error": "Input text kosong atau format salah"}
+
+    results = []
+
+    for text in texts:
+        vec = vectorizer.transform([text])
+        pred = model.predict(vec)[0]
+        prob = float(model.predict_proba(vec).max())
+
+        results.append({
+            "text": text,
+            "sentiment": pred,
+            "confidence": prob
+        })
+
+    return results
 
 
 # ============================
